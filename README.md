@@ -80,24 +80,15 @@ The game ends when either:
 
 * **Objects Used**:
 
-    * `Coordinate`
-    A type alias for a 3-tuple (x, y, z) representing a board cell in 3D.
-    * `Signal` (Enum)
-    Shot outcome constants: MISS, HIT or KILL.
-    * `PieceType` (Enum)
-    Vessel kinds: SUBMARINE, DESTROYER, JET and GENERAL.
-    * `_normalize`(offsets) (function)
-    Translates a set of 2D (x,y) offsets so their minimum becomes (0,0).
-    * `_get_rotations` (base) (function)
-    Generates all unique 90° rotations of a given 2D shape.
-    * `_SHAPES_2D` (dict)
-    Maps each PieceType to its list of normalized, rotated 2D shapes.
-    * `Piece` (dataclass)
-    Tracks vessel type, occupied 3D coordinates, which cells have been hit, ensures per-piece hit logic.
-    * `Board3D` (class)
-    Manages a depth×rows×cols grid: places pieces randomly (no overlaps), records occupancy, and resolves incoming shots.
-    * `Game` (class)
-    Orchestrates two Board3D instances, handles the turn-based CLI loop, input parsing, shot boards, and win conditions.
+    * `Coordinate`: A type alias for a 3-tuple (x, y, z) representing a board cell in 3D.
+    * `Signal` (Enum): Shot outcome constants: MISS, HIT or KILL.
+    * `PieceType` (Enum): Vessel kinds: SUBMARINE, DESTROYER, JET and GENERAL.
+    * `_normalize(offsets)` (function): Translates a set of 2D (x,y) offsets so their minimum becomes (0,0).
+    * `_get_rotations(base)` (function): Generates all unique 90° rotations of a given 2D shape.
+    * `_SHAPES_2D` (dict): Maps each PieceType to its list of normalized, rotated 2D shapes.
+    * `Piece` (dataclass): Tracks vessel type, occupied 3D coordinates, which cells have been hit, ensures per-piece hit logic.
+    * `Board3D` (class): Manages a depth×rows×cols grid: places pieces randomly (no overlaps), records occupancy, and resolves incoming shots.
+    * `Game` (class): Orchestrates two Board3D instances, handles the turn-based CLI loop, input parsing, shot boards, and win conditions.
 
 * **Extensibility**:
 
