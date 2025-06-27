@@ -1,9 +1,8 @@
 """
 3D Submarines Game implementation.
-- Three layers: deep sea (submarines), sea-level (destroyers), air (jets)
-- Unique General piece: single hit ends the game
+- Three layers: deep sea (submarines), sea-level (destroyers), air (jets). Unique General piece: single hit ends the game
 - Random piece placement, turn-based CLI play
-- Extensible: add new PieceTypes and shapes in _SHAPES_2D
+- Extensibilty supported via easy addition new PieceTypes and shapes in _SHAPES_2D
 """
 import random
 from enum import Enum, auto
@@ -13,31 +12,7 @@ from typing import Tuple, Set, Dict, List
 # Alias for a 3D coordinate: (x, y, depth)
 Coordinate = Tuple[int, int, int]
 
-class Signal(Enum):
-    """
-    Outcome of a firing action on the board.
-    MISS: no piece at target
-    HIT: piece was hit but not sunk
-    KILL: piece is destroyed (or General hit)
-    """
-    MISS = auto()
-    HIT  = auto()
-    KILL = auto()
-
-class PieceType(Enum):
-    """
-    Different vessel types in the game.
-    SUBMARINE: length 3, single-hit
-    DESTROYER: length 4, multi-hit
-    JET: cross shape, single-hit
-    GENERAL: single cell, instant game over
-    """
-    SUBMARINE = auto()
-    DESTROYER = auto()
-    JET       = auto()
-    GENERAL   = auto()
-
-# --- Shape generation utilities ---
+### Helper functions ###
 
 def _normalize(offsets: List[Tuple[int,int]]) -> Set[Tuple[int,int]]:
     """
@@ -65,7 +40,33 @@ def _get_rotations(base: List[Tuple[int,int]]) -> List[Set[Tuple[int,int]]]:
         current = [(y, -x) for x,y in current]
     return configs
 
-# --- Predefined piece footprints (2D) ---
+### Define classes ###
+
+class Signal(Enum):
+    """
+    Outcome of a firing action on the board.
+    MISS: no piece at target
+    HIT: piece was hit but not sunk
+    KILL: piece is destroyed (or General hit)
+    """
+    MISS = auto()
+    HIT  = auto()
+    KILL = auto()
+
+class PieceType(Enum):
+    """
+    Different vessel types in the game.
+    SUBMARINE: length 3, single-hit
+    DESTROYER: length 4, multi-hit
+    JET: cross shape, single-hit
+    GENERAL: single cell, instant game over
+    """
+    SUBMARINE = auto()
+    DESTROYER = auto()
+    JET       = auto()
+    GENERAL   = auto()
+
+# Define PieceTypes and piece shapes
 _SHAPES_2D: Dict[PieceType, List[Set[Tuple[int,int]]]] = {
     PieceType.SUBMARINE: _get_rotations([(0,0), (1,0), (2,0)]),
     PieceType.DESTROYER: _get_rotations([(0,0), (1,0), (2,0), (3,0)]),
@@ -114,7 +115,7 @@ class Board3D:
     def place_all(self, counts: Dict[PieceType, int]):
         """
         Randomly place all vessels according to counts.
-        Enforces exactly one General.
+        Strictly checks for exactly one General.
         """
         if counts.get(PieceType.GENERAL, 0) != 1:
             raise ValueError("Exactly one General required")
@@ -167,10 +168,10 @@ class Board3D:
 
 class Game:
     """
-    Orchestrates a two-player match:
+    Runs a two-player match:
     - Initializes two boards with random placement
-    - Manages turn-taking, input parsing, hit/miss feedback
-    - Supports 'show' to reveal own board and 'quit' to abort
+    - Manages player's turns, input parsing and hit/miss feedback
+    - Supports 'show' to reveal own board and 'quit' to abort game
     """
     def __init__(self, depth: int, rows: int, cols: int, counts: Dict[PieceType,int]):
         self.boards = [Board3D(depth, rows, cols), Board3D(depth, rows, cols)]
@@ -209,7 +210,7 @@ class Game:
         print("Starting 3D Submarines Game!")
         while True:
             self._print_view()
-            cmd = input(f"Player {self.current+1}, enter 'z,y,x', or 'show', or 'quit': ").strip().lower()
+            cmd = input(f"Player {self.current+1}, enter 'depth,row,column' ('z,y,x'), or 'show', or 'quit': ").strip().lower()
             if cmd == 'quit':
                 print("Game aborted.")
                 return
@@ -220,14 +221,14 @@ class Game:
                 z,y,x = map(int, cmd.split(','))
                 coord = (x,y,z)
             except ValueError:
-                print("Invalid format. Use z,y,x.")
+                print("Invalid format. Use 'depth,row,column' (z,y,x).")
                 continue
             if coord in self.shots[self.current]:
                 print("Already fired at that coordinate.")
                 continue
-            # record shot and resolve
+            # Record shot and resolve
             self.shots[self.current].add(coord)
-            # capture piece reference before firing
+            # Capture piece reference before firing
             target_board = self.boards[1-self.current]
             piece = target_board.occupied.get(coord)
             sig = target_board.receive_fire(coord)
@@ -260,6 +261,7 @@ class Game:
                 print(line)
             print()
 
+# Main function
 if __name__ == '__main__':
     counts = {PieceType.SUBMARINE:1, PieceType.DESTROYER:1, PieceType.JET:1, PieceType.GENERAL:1}
     game = Game(depth=3, rows=5, cols=5, counts=counts)
