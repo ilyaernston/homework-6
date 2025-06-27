@@ -37,16 +37,16 @@ The game ends when either:
 
    * **Submarine** (Layer 0): 3 cells in a straight line; destroyed by a single hit
    ```
-                    #
-    #  #  #     or     #
-                    #
+    .  .  .         #
+    #  #  #     or  #
+    .  .  .         #
     ```
    * **Destroyer** (Layer 1): 4 cells in a straight line; requires hits on all segments
    ```
-                        #
-    #  #  #  #     or     #
-                        #
-                        #
+    .  .  .  .          #
+    #  #  #  #     or   #
+    .  .  .  .          #
+    .  .  .  .          #
     ```
    * **Jet** (Layer 2): asymmetric cross (3‑cell & 4‑cell lines intersecting); destroyed by a single hit
    ```
