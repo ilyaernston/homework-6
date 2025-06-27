@@ -8,7 +8,6 @@ A 3D variant of the classic Battleship game, where two players face off on a thr
 
 Each fleet also has a single **General** piece, whose destruction grants an instant victory.
 
----
 
 ## Overview
 
@@ -23,7 +22,6 @@ The game ends when either:
 1. The **General** of one side is destroyed (instant win).
 2. **All other vessels** (submarines, destroyers, jets) have been sunk.
 
----
 
 ## Rules
 
@@ -74,7 +72,6 @@ The game ends when either:
    * `show`: reveal your own board.
    * `quit`: abort the current game.
 
----
 
 ## Main Implementation Features
 
@@ -102,8 +99,6 @@ The game ends when either:
 * **Testing**:
 
   * IPython script (`test_hw6.ipy`) performs tests of utilities, placement, hit logic and game flow.
-
----
 
 ## Running the Game
 
