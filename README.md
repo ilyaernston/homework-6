@@ -98,13 +98,14 @@ The game ends when either:
 
 * **Testing**:
 
-  * IPython script (`test_hw6.ipy`) performs tests of utilities, placement, hit logic and game flow.
+  * IPython script (`test.ipy`) performs tests of utilities, placement, hit logic and game flow.
 
 ## Running the Game
 
 1. **Launch**:
 
    ```bash
-   python submarines_game.py
+   python hw6.py
    ```
-2. Enter coordinates in suggested format, or use `show` / `quit` commands.
+2. Enter game parameters and type `start`.
+3. Use `show` to reveal your field or `quit` to abort the game.

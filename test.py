@@ -2,7 +2,7 @@
 
 # Assuming the main game script is saved as 'hw6.py' in the same directory.
 
-from hw6 import (
+from main import (
     _normalize, _get_rotations,
     PieceType, Signal, Piece,
     Board3D, Game

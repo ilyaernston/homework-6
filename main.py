@@ -115,10 +115,39 @@ class Board3D:
     def place_all(self, counts: Dict[PieceType, int]):
         """
         Randomly place all vessels according to counts.
-        Strictly checks for exactly one General.
+        Strictly checks for exactly one General, and that no more than
+        the computable max of any other piece can fit on a single rows×cols layer.
         """
+        # must have exactly one General
         if counts.get(PieceType.GENERAL, 0) != 1:
             raise ValueError("Exactly one General required")
+
+        # for each non‐General type, check maximum packable on a single layer
+        for ptype, num in counts.items():
+            if ptype is PieceType.GENERAL:
+                continue
+
+            # take the “base” rotation (horizontal) to get its bounding box
+            base_shape = _SHAPES_2D[ptype][0]
+            xs = [x for x, y in base_shape]
+            ys = [y for x, y in base_shape]
+            width  = max(xs) - min(xs) + 1
+            height = max(ys) - min(ys) + 1
+
+            # estimate how many fit if laid out horizontally vs. vertically
+            #   horizontal orientation → dims (height × width)
+            cap_horiz = (self.rows // height) * (self.cols // width)
+            #   vertical (rotated) orientation → dims (width × height)
+            cap_vert  = (self.rows // width) * (self.cols // height)
+
+            max_count = max(cap_horiz, cap_vert)
+            if num > max_count:
+                raise ValueError(
+                    f"Cannot place {num} {ptype.name.lower()}s on a "
+                    f"{self.rows}×{self.cols} layer; maximum is {max_count}"
+                )
+
+        # all checks passed → actually place them
         for ptype, num in counts.items():
             for _ in range(num):
                 self._place_random(ptype)
@@ -240,7 +269,7 @@ class Game:
                 if piece and piece.piece_type == PieceType.GENERAL:
                     print(f"Player {self.current+1} wins (General down)!")
                     return
-                # Or if all other vessels are sunk
+                # Win if all other vessels are sunk
                 if target_board.all_non_general_sunk():
                     print(f"Player {self.current+1} wins (all non-General sunk)!")
                     return
@@ -261,8 +290,67 @@ class Game:
                 print(line)
             print()
 
-# Main function
+### Main function ###
+
 if __name__ == '__main__':
-    counts = {PieceType.SUBMARINE:1, PieceType.DESTROYER:1, PieceType.JET:1, PieceType.GENERAL:1}
-    game = Game(depth=3, rows=5, cols=5, counts=counts)
-    game.start()
+    def run_game():
+        print("Welcome to 3D Battleship Game! \n\nLet's configure your match\n")
+        while True:
+            # Board size setup
+            depth = 3 # always exactly 3 layers
+            while True:
+                try: 
+                    rows  = int(input("Enter board ROWS per layer (e.g. 5): "))
+                    cols  = int(input("Enter board COLS per layer (e.g. 5): "))
+                    
+                    if depth < 1 or rows < 1 or cols < 1:
+                        raise ValueError
+                    
+                    if min(rows, cols) < 3 or max(rows, cols) < 4:
+                        raise ValueError("Board must be at least 3×4 (in some orientation).")
+                    
+                    break
+                except ValueError as e:
+                    print(f"Invalid: {e}\n")
+
+            # Piece counts setup
+            counts: Dict[PieceType,int] = {}
+            for ptype in (PieceType.SUBMARINE, PieceType.DESTROYER, PieceType.JET):
+                while True:
+                    try:
+                        num = int(input(f"Enter number of {ptype.name.lower()}s: "))
+                        if num < 0:
+                            raise ValueError
+                        counts[ptype] = num
+                        break
+                    except ValueError:
+                        print("  → Please enter a non-negative integer.\n")
+            counts[PieceType.GENERAL] = 1  # always exactly one General
+
+            # Summary & final command
+            print("\nConfiguration summary:")
+            print(f"  Depth layers: {depth}")
+            print(f"  Board size:   {rows}×{cols} (rows×cols per layer)")
+            for ptype, num in counts.items():
+                print(f"  {ptype.name.capitalize():10s}: {num}")
+
+            # final prompt: start, reset, or quit
+            while True:
+                cmd = input("\nType 'start' to begin, 'reset' to reconfigure, or 'quit' to abort: ")\
+                          .strip().lower()
+                if cmd == 'start':
+                    game = Game(depth, rows, cols, counts)
+                    game.start()
+                    return
+                elif cmd == 'reset':
+                    print("\nRestarting configuration...\n")
+                    break   # breaks inner prompt loop → back to outer while → reconfigure
+                elif cmd == 'quit':
+                    print("Game setup aborted.")
+                    return
+                else:
+                    print("Invalid command. Please enter 'start', 'reset', or 'quit'.")
+
+    run_game()
+
+
