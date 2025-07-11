@@ -87,10 +87,6 @@ class Piece:
     hits: Set[Coordinate]
 
     def register_hit(self, coord: Coordinate) -> Signal:
-        """
-        Process an incoming shot at coord.
-        Returns Signal.MISS, Signal.HIT, or Signal.KILL.
-        """
         if coord not in self.coords:
             return Signal.MISS
         self.hits.add(coord)
@@ -99,6 +95,13 @@ class Piece:
         if self.hits == self.coords:
             return Signal.KILL
         return Signal.HIT
+
+    def is_sunk(self) -> bool:
+        # for single‐hit types, any hit means sunk:
+        if self.piece_type in (PieceType.SUBMARINE, PieceType.JET, PieceType.GENERAL):
+            return bool(self.hits)
+        # for multi‐hit types, require every coord:
+        return self.hits == self.coords
 
 class Board3D:
     """
@@ -191,8 +194,9 @@ class Board3D:
         Used to detect alternate win condition.
         """
         return all(
-            (p.piece_type == PieceType.GENERAL) or (p.hits == p.coords)
+            p.is_sunk()
             for p in self.pieces
+            if p.piece_type != PieceType.GENERAL
         )
 
 class Game:
@@ -249,9 +253,19 @@ class Game:
             try:
                 z,y,x = map(int, cmd.split(','))
                 coord = (x,y,z)
+            # Check if the coordinate is valid
             except ValueError:
                 print("Invalid format. Use 'depth,row,column' (z,y,x).")
                 continue
+            # Validate coordinate bounds
+            board = self.boards[self.current]
+            if not (0 <= z < board.depth
+                    and 0 <= y < board.rows
+                    and 0 <= x < board.cols):
+                print(f"Out of bounds!  z must be 0–{board.depth-1}, "
+                    f"y 0–{board.rows-1}, x 0–{board.cols-1}.")
+                continue
+            # Check if already fired at this coordinate
             if coord in self.shots[self.current]:
                 print("Already fired at that coordinate.")
                 continue
@@ -352,5 +366,3 @@ if __name__ == '__main__':
                     print("Invalid command. Please enter 'start', 'reset', or 'quit'.")
 
     run_game()
-
-
